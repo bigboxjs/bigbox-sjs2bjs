@@ -2,7 +2,7 @@
  * Created by jiehua.yang on 2014/8/27.
  */
 
-var fs = require("fs");
+var FS = require("fs");
 var PathUtil = require("path");
 
 exports.translate = function(options) {
@@ -36,7 +36,7 @@ var Translater = function(options) {
  */
 Translater.prototype.search = function(dir) {
 	var options = this._options;
-	var paths = fs.readdirSync(dir);
+	var paths = FS.readdirSync(dir);
 	paths.forEach((function(path) {
 		switch (PathUtil.extname(path).toLowerCase()) {
 			case "":
@@ -53,8 +53,8 @@ Translater.prototype.search = function(dir) {
 
 				// 如果目标路径下不存在这个文件夹，那就创建之
 				var toDir = PathUtil.join(options.to, relaPath);
-				if (!fs.existsSync(toDir)) {
-					fs.mkdirSync(toDir);
+				if (!FS.existsSync(toDir)) {
+					FS.mkdirSync(toDir);
 				}
 
 				this.search(abPath);
@@ -83,7 +83,7 @@ Translater.prototype.search = function(dir) {
  */
 Translater.prototype.translate = function(srcPath, toPath, dir) {
 	// 读取文件内容
-	var code = fs.readFileSync(srcPath).toString();
+	var code = FS.readFileSync(srcPath).toString();
 
 	// 如果发现某一行是写依赖$require，那就删除之
 	var index = code.indexOf("var $require =");
@@ -102,7 +102,7 @@ Translater.prototype.translate = function(srcPath, toPath, dir) {
 		"});";
 
 	// 写入到新文件中
-	fs.writeFileSync(toPath, browserCode, {
+	FS.writeFileSync(toPath, browserCode, {
 			flag: "w"
 	});
 };
