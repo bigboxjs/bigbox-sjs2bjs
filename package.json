@@ -1,0 +1,10 @@
+{
+  "name": "bigbox-server-sjs2bjs",
+  "version": "0.0.2",
+  "main": "index.js",
+  "description": "bigbox中把server端js编译为browser端js的程序",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bigboxjs/bigbox-sjs2bjs"
+  }
+}
