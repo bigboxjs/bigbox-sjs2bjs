@@ -85,16 +85,6 @@ Translater.prototype.translate = function(srcPath, toPath, dir) {
 	// 读取文件内容
 	var code = FS.readFileSync(srcPath).toString();
 
-	// 如果发现某一行是写依赖$require，那就删除之
-	var index = code.indexOf("var $require =");
-	if (index != -1) {
-		var lineIndex = code.indexOf(";", index);
-		code = code.substr(0, index) + code.substr(lineIndex + 1);
-	}
-
-	// 替换所有的$require.async为require.async
-	code = code.replace(/\$require\.async/mg, "require.async");
-
 	// 生成浏览器端JS内容
 	var browserCode = "define(function(require, exports, module) {" +
 			'var __dirname = "' + PathUtil.relative(this._options.root, dir).replace(new RegExp("\\\\","g"), "/") + '";' +
