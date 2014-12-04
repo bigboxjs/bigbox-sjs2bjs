@@ -5,10 +5,6 @@
 var FS = require("fs");
 var PathUtil = require("path");
 
-exports.translate = function(options) {
-	return new Translater(options);
-};
-
 var Translater = function(options) {
 	/*
 	 {
@@ -26,8 +22,6 @@ var Translater = function(options) {
 	 }
 	 */
 	this._options = options;
-
-	this.search(options.from);
 };
 
 /**
@@ -36,6 +30,10 @@ var Translater = function(options) {
  */
 Translater.prototype.search = function(dir) {
 	var options = this._options;
+	if (!dir) {
+		dir = options.from;
+	}
+
 	var paths = FS.readdirSync(dir);
 	paths.forEach((function(path) {
 		switch (PathUtil.extname(path).toLowerCase()) {
@@ -81,20 +79,51 @@ Translater.prototype.search = function(dir) {
  * 把指定路径的文件转化为json
  * @param srcPath
  */
-Translater.prototype.translate = function(srcPath, toPath, dir) {
-	// 读取文件内容
-	var code = FS.readFileSync(srcPath).toString();
+Translater.prototype.translate = function(srcPath, toPath, dir, callback) {
+	if (callback) {
+		// 读取文件内容
+		var root = this._options.root;
+		FS.readFile(srcPath, function(error, data) {
+			if (error) {
+				console.log(error);
+				return;
+			}
 
-	// 生成浏览器端JS内容
-	var browserCode = "define(function(require, exports, module) {" +
+			var code = data.toString();
+
+			// 生成浏览器端JS内容
+			var browserCode = "define(function(require, exports, module) {" +
+				'var __dirname = "' + PathUtil.relative(root, dir).replace(new RegExp("\\\\","g"), "/") + '";' +
+				code +
+				"});";
+
+			// 写入到新文件中
+			FS.writeFile(toPath, browserCode, {
+				flag: "w+"
+			}, function(error) {
+				if (error) {
+					console.log(error);
+					return;
+				}
+
+				callback();
+			});
+		});
+	} else {
+		// 读取文件内容
+		var code = FS.readFileSync(srcPath).toString();
+
+		// 生成浏览器端JS内容
+		var browserCode = "define(function(require, exports, module) {" +
 			'var __dirname = "' + PathUtil.relative(this._options.root, dir).replace(new RegExp("\\\\","g"), "/") + '";' +
 			code +
-		"});";
+			"});";
 
-	// 写入到新文件中
-	FS.writeFileSync(toPath, browserCode, {
+		// 写入到新文件中
+		FS.writeFileSync(toPath, browserCode, {
 			flag: "w"
-	});
+		});
+	}
 };
 
 /**
@@ -129,3 +158,11 @@ Translater.prototype.needTranslate = function(path, relativePath) {
 
 	return true;
 };
+
+Translater.translate = function(options) {
+	var instance = new Translater(options);
+	instance.search();
+	return instance;
+};
+
+module.exports = Translater;
